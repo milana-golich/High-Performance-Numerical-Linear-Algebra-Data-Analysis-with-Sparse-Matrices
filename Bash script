@@ -1,0 +1,30 @@
+cat -> test-job.sh<<EOF
+#! /bin/bash
+#SBATCH --nodes=4
+#SBATCH --time=00:05:00
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=24
+#SBATCH --job-name=test-job
+#SBATCH --output=test-job.%j.out
+cd gap-4.11.1
+./gap <<EOF
+G := PSL(2,149);
+List(ConjugacyClassesSubgroups(G),c -> Order(Representative(c)));
+A51 := Representative(ConjugacyClassesSubgroups(G)[18]);
+A52 := Representative(ConjugacyClassesSubgroups(G)[19]);
+coset1 := RightCosets(G, A51);
+coset2 := RightCosets(G, A52);
+lis := AsList([1..27565]);
+bigstab := List(lis,c -> Stabilizer(G, coset1[c], OnRight));
+bighom := List(lis,c -> ActionHomomorphism(bigstab[c], coset2, OnRight));
+bigperm := List(lis,c -> Image(bighom[c]));
+bigorbit := List(lis,c -> OrbitsPerms(GeneratorsOfGroup(bigperm[c]),lis));
+bigorbit6 := List(lis,c -> Filtered(bigorbit[c],d -> Size(d)=6));
+bigorbit5 := List(lis,c -> Filtered(bigorbit[c],d -> Size(d)=5));
+bigperm6 := List(lis,c -> (bigorbit6[c][1][1],  bigorbit6[c][1][2], bigorbit6[c][1][3], bigorbit6[c][1][4], bigorbit6[c][1][5], bigorbit6[c][1][6]));
+bigperm5 := List(lis,c -> (bigorbit5[c][1][1],  bigorbit5[c][1][2], bigorbit5[c][1][3], bigorbit5[c][1][4], bigorbit5[c][1][5]));
+PermMat6 := List(lis,c -> PermutationMat(bigperm6[c], 27565));
+PermMat5 := List(lis,c -> PermutationMat(bigperm5[c], 27565));
+bigmatrix := List(lis,c -> PermMat6[c][bigorbit6[c][1][1]]+ PermMat6[c][bigorbit6[c][1][2]]+PermMat6[c][bigorbit6[c][1][3]]+PermMat6[c][bigorbit6[c][1][4]]+PermMat6[c][bigorbit6[c][1][5]]+PermMat6[c][bigorbit6[c][1][6]]-PermMat5[c][bigorbit5[c][1][1]]-PermMat5[c][bigorbit5[c][1][2]]-PermMat5[c][bigorbit5[c][1][3]]-PermMat5[c][bigorbit5[c][1][4]]-PermMat5[c][bigorbit5[c][1][5]]);
+Determinant(bigmatrix);
+EOF
