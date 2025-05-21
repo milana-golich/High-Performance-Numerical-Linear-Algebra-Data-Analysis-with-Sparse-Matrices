@@ -1,1 +1,1 @@
-A few python files and bash script used for my dissertation research involving HPC computing. 
+A few python files and bash script used for my numerical linear algebra and data analysis project involving HPC computing. 
